@@ -47,10 +47,10 @@ export const signup = async (req, res) => {
             generateToken(savedUser._id, res);
 
                 res.status(201).json({
-                    _id: savedUser._id,
-                    fullName: savedUser.fullName,
-                    email: savedUser.email,
-                profilePic: savedUser.profilepic,   // model-ல profilepic தான்
+                    _id: newUser._id,
+                    fullName: newUser.fullName,
+                    email: newUser.email,
+                profilePic: newUser.profilePic,  
 });
         
                 try{
@@ -110,7 +110,7 @@ export const updateProfile = async (req, res) => {
 
         const uploadResponse = await cloudinary.uploader.upload(profilePic);
 
-        const updatedUser = await User.findByIdAndUpdate(userId, {profilepic:uploadResponse.secure_url},{new:true});
+        const updatedUser = await User.findByIdAndUpdate(userId, {profilePic:uploadResponse.secure_url},{new:true});
 
         res.status(200).json(updatedUser);
     } catch (error){
