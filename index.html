@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>CODE-X QUIZ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#04050c;
+    --bg-1:#080b1a;
+    --bg-2:#0d1226;
+    --glass:rgba(255,255,255,0.055);
+    --glass-brd:rgba(140,170,255,0.16);
+    --glass-brd-strong:rgba(140,170,255,0.32);
+    --blue:#3aa9ff;
+    --cyan:#28e0ff;
+    --purple:#a25bff;
+    --purple-2:#7c3aed;
+    --text-hi:#eef3ff;
+    --text-mid:#a9b4d6;
+    --text-dim:#6b7599;
+    --easy:#2be08a;
+    --normal:#ffcb3d;
+    --hard:#ff4d6a;
+    --danger:#ff4d6a;
+    --radius:18px;
+    --radius-sm:12px;
+    --font-display:'Orbitron', sans-serif;
+    --font-body:'Space Grotesk', sans-serif;
+    --font-mono:'JetBrains Mono', monospace;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(1100px 700px at 15% -10%, rgba(58,169,255,0.16), transparent 60%),
+      radial-gradient(900px 600px at 100% 10%, rgba(162,91,255,0.16), transparent 55%),
+      radial-gradient(1200px 900px at 50% 120%, rgba(40,224,255,0.08), transparent 60%),
+      linear-gradient(180deg, var(--bg-0), var(--bg-1) 45%, var(--bg-2));
+    color:var(--text-hi);
+    font-family:var(--font-body);
+    overflow-x:hidden;
+    position:relative;
+  }
+  #particle-canvas{position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; opacity:0.55;}
+  #app{position:relative; z-index:1; min-height:100vh; display:flex; flex-direction:column;}
+
+  ::selection{background:rgba(58,169,255,0.35); color:#fff;}
+  a{color:inherit;}
+  button{font-family:inherit;}
+
+  /* ---------- utility ---------- */
+  .center-screen{
+    min-height:100vh; width:100%; display:flex; align-items:center; justify-content:center;
+    padding:32px 18px; position:relative;
+  }
+  .glass{
+    background:var(--glass);
+    border:1px solid var(--glass-brd);
+    border-radius:var(--radius);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    box-shadow:0 20px 60px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+  .eyebrow{
+    font-family:var(--font-mono);
+    letter-spacing:0.22em;
+    text-transform:uppercase;
+    font-size:11px;
+    color:var(--cyan);
+    display:flex; align-items:center; gap:8px;
+  }
+  .eyebrow::before{content:''; width:16px; height:1px; background:linear-gradient(90deg, var(--cyan), transparent);}
+  .btn{
+    appearance:none; border:none; cursor:pointer;
+    font-family:var(--font-display); font-weight:700; letter-spacing:0.06em;
+    font-size:14px; text-transform:uppercase;
+    padding:16px 28px; border-radius:12px;
+    color:#04101c;
+    background:linear-gradient(135deg, var(--cyan), var(--blue) 55%, var(--purple));
+    box-shadow:0 10px 30px rgba(40,224,255,0.28), 0 0 0 1px rgba(255,255,255,0.08) inset;
+    transition:transform .18s ease, box-shadow .18s ease, filter .18s ease;
+    min-height:52px;
+    touch-action:manipulation;
+  }
+  .btn:hover{transform:translateY(-2px); box-shadow:0 16px 38px rgba(40,224,255,0.4), 0 0 0 1px rgba(255,255,255,0.12) inset;}
+  .btn:active{transform:translateY(0px) scale(.98);}
+  .btn:disabled{opacity:.4; cursor:not-allowed; filter:grayscale(.3); transform:none;}
+  .btn.ghost{
+    background:transparent; color:var(--text-hi);
+    border:1px solid var(--glass-brd-strong);
+    box-shadow:none;
+  }
+  .btn.ghost:hover{background:rgba(255,255,255,0.06); box-shadow:0 0 0 1px var(--glass-brd-strong) inset;}
+  .btn.danger{background:linear-gradient(135deg, #ff6b81, var(--hard));}
+  .btn.block{width:100%;}
+  .btn.sm{padding:12px 18px; font-size:12px; min-height:auto;}
+
+  input[type=text], input[type=password]{
+    width:100%; font-family:var(--font-mono); font-size:14px; color:var(--text-hi);
+    background:rgba(5,8,20,0.55); border:1px solid var(--glass-brd);
+    border-radius:10px; padding:15px 16px; outline:none;
+    transition:border-color .18s ease, box-shadow .18s ease;
+  }
+  input[type=text]:focus, input[type=password]:focus{
+    border-color:var(--cyan); box-shadow:0 0 0 3px rgba(40,224,255,0.15);
+  }
+  label.field-label{
+    display:block; font-family:var(--font-mono); font-size:11px; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--text-dim); margin-bottom:8px;
+  }
+  .field{margin-bottom:18px;}
+  .hint{font-size:12px; color:var(--text-dim); margin-top:8px; line-height:1.5;}
+  .error-text{
+    color:var(--hard); font-size:12.5px; font-family:var(--font-mono);
+    background:rgba(255,77,106,0.09); border:1px solid rgba(255,77,106,0.3);
+    padding:10px 12px; border-radius:8px; margin-top:12px; display:none;
+  }
+  .error-text.show{display:block; animation:shake .35s ease;}
+  @keyframes shake{10%,90%{transform:translateX(-1px);}20%,80%{transform:translateX(2px);}30%,50%,70%{transform:translateX(-4px);}40%,60%{transform:translateX(4px);}}
+
+  .fade-in{animation:fadeIn .5s ease both;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);}}
+  .pop-in{animation:popIn .4s cubic-bezier(.2,1.4,.4,1) both;}
+  @keyframes popIn{from{opacity:0; transform:scale(.9);} to{opacity:1; transform:scale(1);}}
+
+  /* ---------- LOGIN ---------- */
+  .login-card{width:100%; max-width:420px; padding:44px 36px;}
+  .brand-mark{
+    width:64px; height:64px; margin:0 auto 22px; position:relative;
+  }
+  .brand-mark svg{width:100%; height:100%; animation:spin 14s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .login-title{
+    font-family:var(--font-display); font-weight:900; text-align:center;
+    font-size:26px; letter-spacing:.06em; margin:0 0 4px;
+    background:linear-gradient(90deg, var(--cyan), var(--blue) 50%, var(--purple));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .login-sub{text-align:center; color:var(--text-dim); font-size:13px; margin-bottom:32px; font-family:var(--font-mono); letter-spacing:.04em;}
+
+  /* ---------- LANDING / PUBLIC ---------- */
+  .landing-wrap{text-align:center; max-width:640px; width:100%;}
+  .logo-x{
+    font-family:var(--font-display); font-weight:900;
+    font-size:clamp(46px, 10vw, 84px); line-height:1; letter-spacing:.02em;
+    background:linear-gradient(120deg, var(--cyan), var(--blue) 45%, var(--purple));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:0 0 60px rgba(58,169,255,0.25);
+    margin:0;
+  }
+  .logo-sub{
+    font-family:var(--font-mono); letter-spacing:.35em; text-transform:uppercase;
+    color:var(--text-mid); font-size:12px; margin-top:14px;
+  }
+  .tagline{font-size:17px; color:var(--text-mid); margin:26px 0 40px;}
+  .quiz-name-chip{
+    display:inline-flex; align-items:center; gap:8px; font-family:var(--font-mono);
+    font-size:12px; color:var(--cyan); background:rgba(40,224,255,0.08);
+    border:1px solid rgba(40,224,255,0.25); padding:8px 14px; border-radius:100px;
+    margin-bottom:26px;
+  }
+  .dot{width:6px; height:6px; border-radius:50%; background:var(--cyan); box-shadow:0 0 8px var(--cyan); flex:none;}
+
+  /* ---------- QUIZ PLAY ---------- */
+  .quiz-shell{width:100%; max-width:640px; padding:0 4px;}
+  .hud{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; flex-wrap:wrap;}
+  .hud-block{display:flex; flex-direction:column; gap:4px;}
+  .hud-label{font-family:var(--font-mono); font-size:10px; letter-spacing:.15em; text-transform:uppercase; color:var(--text-dim);}
+  .hud-value{font-family:var(--font-display); font-size:22px; font-weight:700;}
+  .diff-badge{
+    font-family:var(--font-mono); font-weight:600; font-size:12px; letter-spacing:.08em;
+    padding:8px 14px; border-radius:100px; display:inline-flex; align-items:center; gap:8px;
+    border:1px solid; text-transform:uppercase; transition:all .3s ease;
+  }
+  .diff-badge.easy{color:var(--easy); border-color:rgba(43,224,138,.4); background:rgba(43,224,138,.08);}
+  .diff-badge.normal{color:var(--normal); border-color:rgba(255,203,61,.4); background:rgba(255,203,61,.08);}
+  .diff-badge.hard{color:var(--hard); border-color:rgba(255,77,106,.4); background:rgba(255,77,106,.08);}
+
+  .progress-track{
+    width:100%; height:8px; border-radius:100px; background:rgba(255,255,255,0.07);
+    overflow:hidden; margin-bottom:26px; border:1px solid rgba(255,255,255,0.06);
+  }
+  .progress-fill{
+    height:100%; border-radius:100px;
+    background:linear-gradient(90deg, var(--cyan), var(--blue), var(--purple));
+    transition:width .5s cubic-bezier(.4,.2,.2,1);
+    box-shadow:0 0 12px rgba(58,169,255,0.6);
+  }
+
+  .q-card{padding:32px 28px;}
+  .q-number{font-family:var(--font-mono); color:var(--text-dim); font-size:12px; letter-spacing:.12em; text-transform:uppercase; margin-bottom:10px;}
+  .q-text{font-size:clamp(19px,3.2vw,23px); font-weight:600; line-height:1.4; margin:0 0 26px;}
+
+  .options{display:flex; flex-direction:column; gap:12px;}
+  .option{
+    display:flex; align-items:center; gap:14px; text-align:left;
+    padding:16px 18px; border-radius:12px; cursor:pointer;
+    background:rgba(255,255,255,0.03); border:1px solid var(--glass-brd);
+    transition:transform .15s ease, border-color .15s ease, background .15s ease;
+    font-size:15px; color:var(--text-hi); min-height:56px;
+  }
+  .option:hover:not(.locked){border-color:var(--glass-brd-strong); background:rgba(255,255,255,0.06); transform:translateX(2px);}
+  .option:active:not(.locked){transform:scale(.99);}
+  .opt-letter{
+    flex:none; width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-mono); font-weight:600; font-size:13px;
+    background:rgba(255,255,255,0.06); border:1px solid var(--glass-brd);
+    transition:all .2s ease;
+  }
+  .option.correct{border-color:var(--easy); background:rgba(43,224,138,0.1);}
+  .option.correct .opt-letter{background:var(--easy); color:#04150c; border-color:var(--easy);}
+  .option.incorrect{border-color:var(--hard); background:rgba(255,77,106,0.1); animation:shake .35s ease;}
+  .option.incorrect .opt-letter{background:var(--hard); color:#210307; border-color:var(--hard);}
+  .option.locked{cursor:default;}
+  .option.dim{opacity:.45;}
+
+  .feedback{
+    margin-top:20px; padding:16px 18px; border-radius:12px;
+    font-size:13.5px; line-height:1.6; display:none; animation:fadeIn .35s ease both;
+  }
+  .feedback.show{display:block;}
+  .feedback.good{background:rgba(43,224,138,0.08); border:1px solid rgba(43,224,138,.3); color:#c9ffe4;}
+  .feedback.bad{background:rgba(255,77,106,0.08); border:1px solid rgba(255,77,106,.3); color:#ffd6dd;}
+  .feedback b{font-family:var(--font-mono);}
+
+  .next-row{display:flex; justify-content:flex-end; margin-top:22px;}
+
+  /* level up overlay */
+  .levelup-overlay{
+    position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center;
+    background:rgba(2,4,12,0.75); backdrop-filter:blur(6px);
+    opacity:0; pointer-events:none; transition:opacity .35s ease;
+  }
+  .levelup-overlay.show{opacity:1; pointer-events:all;}
+  .levelup-box{text-align:center; animation:levelPop .6s cubic-bezier(.2,1.6,.3,1) both;}
+  @keyframes levelPop{0%{transform:scale(.5) translateY(30px); opacity:0;} 60%{transform:scale(1.08);} 100%{transform:scale(1); opacity:1;}}
+  .levelup-eyebrow{font-family:var(--font-mono); letter-spacing:.4em; color:var(--text-mid); font-size:13px; margin-bottom:10px; text-transform:uppercase;}
+  .levelup-title{font-family:var(--font-display); font-weight:900; font-size:clamp(32px,7vw,54px); margin:0;}
+  .levelup-title.normal{color:var(--normal); text-shadow:0 0 40px rgba(255,203,61,.5);}
+  .levelup-title.hard{color:var(--hard); text-shadow:0 0 40px rgba(255,77,106,.5);}
+
+  /* ---------- RESULT SCREEN ---------- */
+  .result-wrap{width:100%; max-width:560px; text-align:center; padding:48px 34px;}
+  .result-kicker{font-family:var(--font-mono); letter-spacing:.3em; text-transform:uppercase; color:var(--cyan); font-size:12px;}
+  .result-title{font-family:var(--font-display); font-weight:900; font-size:clamp(30px,6vw,42px); margin:10px 0 26px;}
+  .score-ring-wrap{position:relative; width:180px; height:180px; margin:0 auto 22px;}
+  .score-ring-wrap svg{width:100%; height:100%; transform:rotate(-90deg);}
+  .score-center{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;}
+  .score-center .num{font-family:var(--font-display); font-size:34px; font-weight:900;}
+  .score-center .denom{font-family:var(--font-mono); font-size:12px; color:var(--text-dim);}
+  .perf-msg{font-size:19px; font-weight:600; margin-bottom:8px;}
+  .perf-sub{color:var(--text-mid); font-size:13.5px; margin-bottom:32px;}
+  .result-actions{display:flex; gap:12px; flex-wrap:wrap; justify-content:center;}
+
+  /* ---------- CREATOR DASHBOARD ---------- */
+  .dash-wrap{width:100%; max-width:760px; margin:0 auto; padding:40px 20px 80px;}
+  .dash-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:30px; gap:14px; flex-wrap:wrap;}
+  .dash-title{font-family:var(--font-display); font-weight:900; font-size:clamp(20px,4vw,28px); letter-spacing:.03em;
+    background:linear-gradient(90deg, var(--cyan), var(--purple)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .panel{padding:28px 26px; margin-bottom:22px;}
+  .panel-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;}
+  .panel-title{font-family:var(--font-mono); font-size:13px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-hi); display:flex; align-items:center; gap:10px;}
+  .panel-title .idx{color:var(--cyan);}
+  .demo-tag{
+    font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--normal); border:1px solid rgba(255,203,61,.4); background:rgba(255,203,61,.08);
+    padding:4px 10px; border-radius:100px;
+  }
+  .row{display:flex; gap:14px; flex-wrap:wrap;}
+  .row .field{flex:1; min-width:220px;}
+  .link-box{
+    display:flex; align-items:center; gap:10px; background:rgba(5,8,20,0.6);
+    border:1px solid var(--glass-brd); border-radius:10px; padding:14px 16px;
+    font-family:var(--font-mono); font-size:13px; color:var(--cyan); word-break:break-all;
+  }
+  .recent-list{display:flex; flex-direction:column; gap:10px;}
+  .recent-item{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:12px 14px; border:1px solid var(--glass-brd); border-radius:10px; background:rgba(255,255,255,0.02);
+    flex-wrap:wrap;
+  }
+  .recent-item .rname{font-weight:600; font-size:14px;}
+  .recent-item .rid{font-family:var(--font-mono); font-size:11px; color:var(--text-dim);}
+
+  /* modal */
+  .modal-backdrop{
+    position:fixed; inset:0; z-index:60; background:rgba(2,4,12,0.72); backdrop-filter:blur(6px);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    opacity:0; pointer-events:none; transition:opacity .3s ease;
+  }
+  .modal-backdrop.show{opacity:1; pointer-events:all;}
+  .modal-card{width:100%; max-width:480px; padding:34px 30px; text-align:center;}
+  .modal-icon{
+    width:56px; height:56px; margin:0 auto 18px; border-radius:14px;
+    background:linear-gradient(135deg, var(--cyan), var(--purple));
+    display:flex; align-items:center; justify-content:center; font-size:26px;
+    box-shadow:0 0 30px rgba(58,169,255,0.4);
+  }
+  .modal-title{font-family:var(--font-display); font-weight:800; font-size:20px; margin:0 0 8px;}
+  .modal-sub{color:var(--text-mid); font-size:13px; margin-bottom:22px;}
+
+  .toast{
+    position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:rgba(10,14,28,0.95); border:1px solid var(--glass-brd-strong); color:var(--text-hi);
+    font-family:var(--font-mono); font-size:13px; padding:12px 20px; border-radius:100px;
+    z-index:80; opacity:0; transition:all .3s ease; pointer-events:none; box-shadow:0 10px 30px rgba(0,0,0,0.4);
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  .footer-note{text-align:center; color:var(--text-dim); font-size:11.5px; font-family:var(--font-mono); margin-top:26px; line-height:1.7;}
+  .footer-note a{color:var(--cyan); text-decoration:none;}
+
+  .center-msg{max-width:480px; text-align:center; padding:44px 34px;}
+  .center-msg .icon{font-size:34px; margin-bottom:14px;}
+
+  .creator-access-link{
+    position:fixed; right:16px; bottom:14px; z-index:5;
+    font-family:var(--font-mono); font-size:10.5px; letter-spacing:.08em;
+    color:var(--text-dim); text-decoration:none; opacity:0.35;
+    transition:opacity .2s ease; padding:6px 8px;
+  }
+  .creator-access-link:hover{opacity:0.85;}
+
+  @media (max-width: 480px){
+    .login-card{padding:34px 22px;}
+    .q-card{padding:24px 18px;}
+    .result-wrap{padding:36px 20px;}
+    .btn{padding:15px 20px; font-size:13px;}
+  }
+</style>
+</head>
+<body>
+<canvas id="particle-canvas"></canvas>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   CODE-X QUIZ
+   Single-file demo build (creator dashboard + public quiz app)
+
+   ARCHITECTURE NOTE (read me):
+   The brief asks for React/TS + a Node/API backend + a database.
+   This artifact runs as a static, sandboxed HTML/JS page with no
+   server of its own, so it can't host real API routes. Instead it
+   uses the artifact platform's key-value storage
+   (window.storage, shared=true) as a stand-in "database" so a
+   quiz link generated here can be opened from another device and
+   resolve to the same quiz. Swap window.storage calls for real
+   fetch() calls to your Node/API layer + DB to move this to
+   production, and swap the client-side "codex/code" check for
+   real server-side session auth.
+   ============================================================ */
+
+/* ---------------- Question bank (easy to expand) ---------------- */
+const QUESTION_BANK = {
+  easy: [
+    { q: "What is the capital of India?", o: ["Mumbai","New Delhi","Chennai","Kolkata"], c: 1, e: "New Delhi has been India's capital since 1911." },
+    { q: "What is the capital of France?", o: ["Berlin","Rome","Paris","Madrid"], c: 2, e: "Paris has been France's capital for centuries." },
+    { q: "Which is the largest planet in our solar system?", o: ["Earth","Jupiter","Mars","Venus"], c: 1, e: "Jupiter is the largest planet by both mass and volume." },
+    { q: "How many continents are there on Earth?", o: ["5","6","7","8"], c: 2, e: "The commonly taught model lists 7 continents." },
+    { q: "What color is the sky on a clear day?", o: ["Green","Blue","Grey","Purple"], c: 1, e: "Sunlight scatters off the atmosphere, scattering blue light most." },
+    { q: "What is the chemical symbol for water?", o: ["O2","CO2","H2O","HO2"], c: 2, e: "Water is two hydrogen atoms bonded to one oxygen atom." },
+    { q: "How many days are there in a week?", o: ["5","6","7","8"], c: 2, e: "A week has seven days." },
+    { q: "In which direction does the sun rise?", o: ["West","North","South","East"], c: 3, e: "Earth's rotation makes the sun appear to rise in the east." },
+    { q: "Which is the fastest land animal?", o: ["Lion","Cheetah","Horse","Leopard"], c: 1, e: "Cheetahs can sprint over 100 km/h in short bursts." },
+    { q: "What is the official currency of the USA?", o: ["Pound","Euro","Dollar","Peso"], c: 2, e: "The US dollar (USD) is the official currency." },
+    { q: "Which is the largest ocean on Earth?", o: ["Atlantic","Indian","Arctic","Pacific"], c: 3, e: "The Pacific Ocean covers roughly a third of Earth's surface." },
+    { q: "How many legs does a spider have?", o: ["6","8","10","12"], c: 1, e: "Spiders are arachnids and have 8 legs." },
+    { q: "What is the capital of Japan?", o: ["Osaka","Kyoto","Tokyo","Yokohama"], c: 2, e: "Tokyo became Japan's capital in 1868." },
+    { q: "At what temperature (Celsius) does water freeze?", o: ["0°C","10°C","-10°C","100°C"], c: 0, e: "Water freezes at 0°C at standard atmospheric pressure." },
+    { q: "Who wrote the play 'Romeo and Juliet'?", o: ["Charles Dickens","William Shakespeare","Mark Twain","Jane Austen"], c: 1, e: "William Shakespeare wrote it in the late 16th century." }
+  ],
+  normal: [
+    { q: "Which river is traditionally considered the longest in the world?", o: ["Amazon","Nile","Yangtze","Mississippi"], c: 1, e: "The Nile is traditionally listed as the world's longest river." },
+    { q: "What is the smallest prime number?", o: ["0","1","2","3"], c: 2, e: "2 is the smallest and only even prime number." },
+    { q: "What is the chemical symbol for gold?", o: ["Go","Gd","Au","Ag"], c: 2, e: "Au comes from the Latin word 'aurum'." },
+    { q: "Which country is known as the 'Land of the Rising Sun'?", o: ["China","Japan","Thailand","South Korea"], c: 1, e: "Japan's name itself translates roughly to 'origin of the sun'." },
+    { q: "How many players are on a soccer team on the field at once?", o: ["9","10","11","12"], c: 2, e: "Each side fields 11 players, including the goalkeeper." },
+    { q: "Which planet is known as the 'Red Planet'?", o: ["Venus","Mars","Mercury","Saturn"], c: 1, e: "Mars appears red due to iron oxide (rust) on its surface." },
+    { q: "Who is credited with inventing the telephone?", o: ["Thomas Edison","Nikola Tesla","Alexander Graham Bell","Guglielmo Marconi"], c: 2, e: "Bell was awarded the first US patent for the telephone in 1876." },
+    { q: "What is the official currency of Japan?", o: ["Won","Yuan","Ringgit","Yen"], c: 3, e: "The Japanese yen (¥) has been used since 1871." },
+    { q: "Which is the largest hot desert in the world?", o: ["Gobi","Kalahari","Sahara","Thar"], c: 2, e: "The Sahara spans much of North Africa." },
+    { q: "What is the largest organ in the human body?", o: ["Liver","Heart","Skin","Lungs"], c: 2, e: "The skin is the body's largest organ by surface area and weight." },
+    { q: "Approximately how fast does light travel in a vacuum?", o: ["300,000 km/s","150,000 km/s","30,000 km/s","3,000 km/s"], c: 0, e: "Light travels at roughly 300,000 kilometers per second." },
+    { q: "Which country gifted the Statue of Liberty to the USA?", o: ["United Kingdom","France","Spain","Italy"], c: 1, e: "France presented it to the US in 1886 to mark friendship." },
+    { q: "How many bones are in the adult human body?", o: ["186","206","226","246"], c: 1, e: "Adults typically have 206 bones (babies are born with more)." },
+    { q: "Who was the first President of the United States?", o: ["Thomas Jefferson","John Adams","Abraham Lincoln","George Washington"], c: 3, e: "George Washington served from 1789 to 1797." },
+    { q: "Which is the tallest mountain in the world (above sea level)?", o: ["K2","Kangchenjunga","Mount Everest","Denali"], c: 2, e: "Mount Everest stands about 8,849 meters tall." }
+  ],
+  hard: [
+    { q: "Which element has the atomic number 1?", o: ["Helium","Hydrogen","Lithium","Oxygen"], c: 1, e: "Hydrogen is the lightest and first element on the periodic table." },
+    { q: "In which year did World War II end?", o: ["1943","1944","1945","1946"], c: 2, e: "The war ended in 1945 with the surrender of Japan." },
+    { q: "What is the smallest country in the world by area?", o: ["Monaco","San Marino","Vatican City","Liechtenstein"], c: 2, e: "Vatican City covers about 0.49 square kilometers." },
+    { q: "Who wrote the novel '1984'?", o: ["Aldous Huxley","George Orwell","Ray Bradbury","H.G. Wells"], c: 1, e: "George Orwell published '1984' in 1949." },
+    { q: "What currency is used by most of the European Union?", o: ["Franc","Euro","Mark","Lira"], c: 1, e: "The euro was introduced for accounts in 1999, cash in 2002." },
+    { q: "What is the chemical formula for common table salt?", o: ["NaCl","KCl","CaCl2","NaOH"], c: 0, e: "Table salt is sodium chloride, NaCl." },
+    { q: "How many chromosomes are in a typical human cell?", o: ["23","44","46","48"], c: 2, e: "Human cells typically carry 46 chromosomes (23 pairs)." },
+    { q: "What is the 'powerhouse of the cell' commonly called?", o: ["Nucleus","Ribosome","Mitochondria","Golgi apparatus"], c: 2, e: "Mitochondria generate most of a cell's ATP energy." },
+    { q: "Which country has the most natural lakes?", o: ["Russia","USA","Finland","Canada"], c: 3, e: "Canada is home to the largest number of lakes worldwide." },
+    { q: "What is the deepest known point in Earth's oceans?", o: ["Puerto Rico Trench","Java Trench","Mariana Trench","Tonga Trench"], c: 2, e: "The Mariana Trench's Challenger Deep is the deepest known point." },
+    { q: "Who was the first person to walk on the Moon?", o: ["Buzz Aldrin","Yuri Gagarin","Neil Armstrong","John Glenn"], c: 2, e: "Neil Armstrong stepped onto the Moon on July 20, 1969." },
+    { q: "Which programming language is known for 'write once, run anywhere'?", o: ["Python","C++","Java","Ruby"], c: 2, e: "Java's JVM lets compiled code run across platforms." },
+    { q: "What is the capital city of Australia?", o: ["Sydney","Melbourne","Canberra","Brisbane"], c: 2, e: "Canberra was purpose-built as the capital, chosen in 1908." },
+    { q: "Which is the largest mammal in the world?", o: ["African elephant","Blue whale","Giraffe","Sperm whale"], c: 1, e: "The blue whale is the largest animal ever known to have existed." },
+    { q: "Which gas makes up the majority of Earth's atmosphere?", o: ["Oxygen","Carbon dioxide","Nitrogen","Argon"], c: 2, e: "Nitrogen makes up about 78% of the atmosphere." }
+  ]
+};
+
+const MAX_SCORE = 50;
+const TOTAL_QUESTIONS = 50;
+const CREATOR_USER = "codex";
+const CREATOR_PASS = "code";
+
+/* ---------------- tiny storage helpers (window.storage wrapper) ---------------- */
+async function storeGet(key, shared){
+  try{
+    const r = await window.storage.get(key, !!shared);
+    return r ? r.value : null;
+  }catch(e){ return null; }
+}
+async function storeSet(key, value, shared){
+  try{ return await window.storage.set(key, value, !!shared); }
+  catch(e){ console.error("storage set failed", e); return null; }
+}
+async function storeDelete(key, shared){
+  try{ return await window.storage.delete(key, !!shared); }
+  catch(e){ return null; }
+}
+async function storeListKeys(prefix, shared){
+  try{
+    const r = await window.storage.list(prefix, !!shared);
+    return r ? r.keys : [];
+  }catch(e){ return []; }
+}
+
+/* ---------------- toast ---------------- */
+let toastTimer = null;
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> el.classList.remove('show'), 2200);
+}
+
+/* ---------------- id + escaping helpers ---------------- */
+function genId(len){
+  len = len || 8;
+  const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+  let out = '';
+  for(let i=0;i<len;i++) out += chars[Math.floor(Math.random()*chars.length)];
+  return out;
+}
+function esc(str){
+  const d = document.createElement('div');
+  d.textContent = str == null ? '' : String(str);
+  return d.innerHTML;
+}
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+/* ---------------- difficulty helpers ---------------- */
+function diffForScore(score){
+  if(score >= 25) return 'hard';
+  if(score >= 10) return 'normal';
+  return 'easy';
+}
+const DIFF_META = {
+  easy:   { label:'EASY MODE',   emoji:'🟢', cls:'easy'   },
+  normal: { label:'NORMAL MODE', emoji:'🟡', cls:'normal' },
+  hard:   { label:'HARD MODE',   emoji:'🔴', cls:'hard'   }
+};
+
+/* ================================================================
+   ROUTER + STATE
+   ================================================================ */
+const app = document.getElementById('app');
+
+let creatorSession = false;
+let play = null; // active gameplay state
+
+function parseRoute(){
+  const h = location.hash.replace(/^#\/?/, '');
+  if(h.startsWith('quiz/')) return { name:'quiz', id: h.slice(5) };
+  if(h === 'creator') return { name:'creator' };
+  return { name:'home' };
+}
+
+window.addEventListener('hashchange', render);
+window.addEventListener('DOMContentLoaded', boot);
+
+async function boot(){
+  const s = await storeGet('codex_session', false);
+  creatorSession = !!s;
+  render();
+}
+
+/* ================================================================
+   RENDER DISPATCH
+   ================================================================ */
+async function render(){
+  const route = parseRoute();
+
+  if(route.name === 'creator'){
+    if(!creatorSession){ renderLogin(); }
+    else{ renderDashboard(); }
+    return;
+  }
+
+  if(route.name === 'quiz'){
+    renderLoading();
+    const raw = await storeGet('quiz:' + route.id, true);
+    if(!raw){ renderNotFound(route.id); return; }
+    let meta;
+    try{ meta = JSON.parse(raw); } catch(e){ renderNotFound(route.id); return; }
+    renderPublicLanding(meta);
+    return;
+  }
+
+  // home / default — playable demo quiz
+  renderPublicLanding({ id:'demo', title:'CODE-X QUIZ', createdAt:Date.now() });
+}
+
+function renderLoading(){
+  app.innerHTML = `
+    <div class="center-screen">
+      <div class="eyebrow" style="opacity:.8">LOADING QUIZ…</div>
+    </div>`;
+}
+
+function renderNotFound(id){
+  app.innerHTML = `
+    <div class="center-screen">
+      <div class="glass center-msg pop-in">
+        <div class="icon">⚠️</div>
+        <div class="modal-title">Link invalid or expired</div>
+        <div class="modal-sub">No quiz was found for ID <span style="color:var(--cyan)">${esc(id)}</span>. Ask the creator for a fresh link, or try the demo quiz below.</div>
+        <button class="btn block" id="go-home">TRY DEMO QUIZ</button>
+      </div>
+    </div>`;
+  document.getElementById('go-home').onclick = () => { location.hash = '#/'; };
+}
+
+/* ================================================================
+   PARTICLE BACKGROUND (constellation / circuit style)
+   ================================================================ */
+(function initParticles(){
+  const canvas = document.getElementById('particle-canvas');
+  const ctx = canvas.getContext('2d');
+  let w, h, particles;
+  const COUNT = window.innerWidth < 640 ? 42 : 78;
+
+  function resize(){
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  }
+  function makeParticles(){
+    particles = [];
+    for(let i=0;i<COUNT;i++){
+      particles.push({
+        x: Math.random()*w, y: Math.random()*h,
+        vx: (Math.random()-0.5)*0.25, vy: (Math.random()-0.5)*0.25,
+        r: Math.random()*1.6 + 0.6
+      });
+    }
+  }
+  resize(); makeParticles();
+  window.addEventListener('resize', () => { resize(); makeParticles(); });
+
+  function tick(){
+    ctx.clearRect(0,0,w,h);
+    for(const p of particles){
+      p.x += p.vx; p.y += p.vy;
+      if(p.x < 0 || p.x > w) p.vx *= -1;
+      if(p.y < 0 || p.y > h) p.vy *= -1;
+    }
+    for(let i=0;i<particles.length;i++){
+      for(let j=i+1;j<particles.length;j++){
+        const a = particles[i], b = particles[j];
+        const dx = a.x-b.x, dy = a.y-b.y;
+        const dist = Math.sqrt(dx*dx+dy*dy);
+        if(dist < 130){
+          ctx.strokeStyle = `rgba(58,169,255,${0.12 * (1 - dist/130)})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+        }
+      }
+    }
+    for(const p of particles){
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(140,200,255,0.55)';
+      ctx.fill();
+    }
+    requestAnimationFrame(tick);
+  }
+  tick();
+})();
+
+/* ================================================================
+   BRAND MARK (svg used in a few places)
+   ================================================================ */
+function brandMarkSvg(){
+  return `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="bm" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#28e0ff"/>
+        <stop offset="55%" stop-color="#3aa9ff"/>
+        <stop offset="100%" stop-color="#a25bff"/>
+      </linearGradient>
+    </defs>
+    <polygon points="32,3 58,17 58,47 32,61 6,47 6,17" fill="none" stroke="url(#bm)" stroke-width="2.4"/>
+    <polygon points="32,15 47,23.5 47,40.5 32,49 17,40.5 17,23.5" fill="none" stroke="url(#bm)" stroke-width="1.6" opacity="0.7"/>
+    <circle cx="32" cy="32" r="4.5" fill="url(#bm)"/>
+  </svg>`;
+}
+
+/* ================================================================
+   PUBLIC LANDING
+   ================================================================ */
+function renderPublicLanding(meta){
+  app.innerHTML = `
+    <div class="center-screen">
+      <div class="landing-wrap fade-in">
+        <div class="brand-mark" style="width:80px;height:80px;">${brandMarkSvg()}</div>
+        <h1 class="logo-x">CODE-X<br/>QUIZ</h1>
+        <div class="logo-sub">Test Your Knowledge</div>
+        ${meta.id !== 'demo' ? `<div class="quiz-name-chip" style="margin-top:22px;"><span class="dot"></span>${esc(meta.title || 'CODE-X QUIZ')}</div>` : ''}
+        <p class="tagline">50 questions. Climb through Easy → Normal → Hard difficulty<br/>as your score rises, and chase a perfect 50/50.</p>
+        <button class="btn" id="start-btn" style="min-width:220px;">START QUIZ</button>
+        <div class="footer-note">Quiz ID: ${esc(meta.id)} · No install required · Works on any device</div>
+      </div>
+    </div>
+    <a href="#/creator" class="creator-access-link" title="Creator access">⚙ creator</a>`;
+  document.getElementById('start-btn').onclick = () => startQuiz(meta);
+}
+
+/* ================================================================
+   GAMEPLAY
+   ================================================================ */
+function startQuiz(meta){
+  play = {
+    meta,
+    score: 0,
+    difficulty: 'easy',
+    used: { easy: [], normal: [], hard: [] },
+    current: null,
+    answered: false,
+    questionsAsked: 0
+  };
+  nextQuestion(true);
+}
+
+function pickQuestion(diff){
+  const pool = QUESTION_BANK[diff];
+  let used = play.used[diff];
+  if(used.length >= pool.length) used = play.used[diff] = [];
+  let idx;
+  do{ idx = Math.floor(Math.random()*pool.length); } while(used.includes(idx));
+  used.push(idx);
+  const src = pool[idx];
+  const optionOrder = shuffle([0,1,2,3]);
+  const options = optionOrder.map(i => src.o[i]);
+  const correctIndex = optionOrder.indexOf(src.c);
+  return { q: src.q, options, correctIndex, explain: src.e, diff };
+}
+
+function nextQuestion(skipLevelCheck){
+  const newDiff = diffForScore(play.score);
+  const leveledUp = !skipLevelCheck && newDiff !== play.difficulty;
+  play.difficulty = newDiff;
+  play.current = pickQuestion(newDiff);
+  play.answered = false;
+  play.questionsAsked += 1;
+
+  if(leveledUp){
+    showLevelUp(newDiff, () => renderQuizPlay());
+  } else {
+    renderQuizPlay();
+  }
+}
+
+function showLevelUp(diff, cb){
+  const meta = DIFF_META[diff];
+  const overlay = document.createElement('div');
+  overlay.className = 'levelup-overlay';
+  overlay.innerHTML = `
+    <div class="levelup-box">
+      <div class="levelup-eyebrow">LEVEL UP!</div>
+      <h2 class="levelup-title ${meta.cls}">${meta.emoji} ${meta.label} UNLOCKED</h2>
+    </div>`;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(()=> overlay.classList.add('show'));
+  setTimeout(()=>{
+    overlay.classList.remove('show');
+    setTimeout(()=>{ overlay.remove(); cb(); }, 350);
+  }, 1500);
+}
+
+function renderQuizPlay(){
+  const p = play;
+  const meta = DIFF_META[p.difficulty];
+  const pct = Math.min(100, Math.round((p.questionsAsked / TOTAL_QUESTIONS) * 100));
+  const letters = ['A','B','C','D'];
+
+  app.innerHTML = `
+    <div class="center-screen">
+      <div class="quiz-shell fade-in">
+        <div class="hud">
+          <div class="hud-block">
+            <div class="hud-label">Score</div>
+            <div class="hud-value" id="score-val">${p.score}<span style="color:var(--text-dim); font-size:14px;"> / ${MAX_SCORE}</span></div>
+          </div>
+          <div class="diff-badge ${meta.cls}" id="diff-badge">${meta.emoji} ${meta.label}</div>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+
+        <div class="glass q-card pop-in" id="q-card">
+          <div class="q-number">Question ${p.questionsAsked} / ${TOTAL_QUESTIONS} · ${meta.label}</div>
+          <div class="q-text">${esc(p.current.q)}</div>
+          <div class="options" id="options">
+            ${p.current.options.map((opt,i)=>`
+              <div class="option" data-idx="${i}">
+                <span class="opt-letter">${letters[i]}</span>
+                <span>${esc(opt)}</span>
+              </div>`).join('')}
+          </div>
+          <div class="feedback" id="feedback"></div>
+          <div class="next-row" id="next-row" style="display:none;">
+            <button class="btn" id="next-btn">NEXT →</button>
+          </div>
+        </div>
+        <div class="footer-note">${esc(p.meta.title || 'CODE-X QUIZ')} · Quiz ID ${esc(p.meta.id)}</div>
+      </div>
+    </div>`;
+
+  document.querySelectorAll('.option').forEach(el=>{
+    el.addEventListener('click', () => onAnswer(parseInt(el.dataset.idx,10)));
+  });
+}
+
+function onAnswer(idx){
+  if(play.answered) return;
+  play.answered = true;
+  const p = play.current;
+  const correct = idx === p.correctIndex;
+  if(correct) play.score = Math.min(MAX_SCORE, play.score + 1);
+
+  document.querySelectorAll('.option').forEach(el=>{
+    const i = parseInt(el.dataset.idx,10);
+    el.classList.add('locked');
+    if(i === p.correctIndex) el.classList.add('correct');
+    else if(i === idx) el.classList.add('incorrect');
+    else el.classList.add('dim');
+  });
+
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback show ' + (correct ? 'good' : 'bad');
+  fb.innerHTML = correct
+    ? `<b>Correct!</b> ${esc(p.explain)}`
+    : `<b>Not quite.</b> The correct answer was <b>${esc(p.options[p.correctIndex])}</b>. ${esc(p.explain)}`;
+
+  document.getElementById('score-val').innerHTML = `${play.score}<span style="color:var(--text-dim); font-size:14px;"> / ${MAX_SCORE}</span>`;
+  const pct = Math.min(100, Math.round((play.questionsAsked / TOTAL_QUESTIONS) * 100));
+  const fill = document.querySelector('.progress-fill');
+  if(fill) fill.style.width = pct + '%';
+
+  const quizFinished = play.questionsAsked >= TOTAL_QUESTIONS;
+  const nextRow = document.getElementById('next-row');
+  nextRow.style.display = 'flex';
+  document.getElementById('next-btn').onclick = () => {
+    if(quizFinished) renderResult();
+    else nextQuestion(false);
+  };
+
+  if(quizFinished){
+    document.getElementById('next-btn').textContent = 'SEE RESULT →';
+  }
+}
+
+/* ================================================================
+   RESULT SCREEN
+   ================================================================ */
+function perfMessage(score){
+  if(score >= 50) return { title:'QUIZ MASTER! 🏆', sub:'A flawless run through every difficulty tier.' };
+  if(score >= 40) return { title:'Outstanding!', sub:'You handled Hard Mode like a pro.' };
+  if(score >= 25) return { title:'Excellent!', sub:'Strong performance across the board.' };
+  if(score >= 10) return { title:'Good Job!', sub:'Solid climb into Normal Mode.' };
+  return { title:'Keep Practicing!', sub:'Every attempt sharpens the next one.' };
+}
+
+function renderResult(){
+  const score = play.score;
+  const pct = Math.round((score / MAX_SCORE) * 100);
+  const msg = perfMessage(score);
+  const circumference = 2 * Math.PI * 78;
+  const offset = circumference * (1 - pct/100);
+  const isMaster = score >= 50;
+
+  app.innerHTML = `
+    <div class="center-screen">
+      <div class="glass result-wrap pop-in">
+        <div class="result-kicker">${isMaster ? '🎉 QUIZ MASTER!' : 'QUIZ COMPLETE!'}</div>
+        <h2 class="result-title">Your Score</h2>
+        <div class="score-ring-wrap">
+          <svg viewBox="0 0 180 180">
+            <circle cx="90" cy="90" r="78" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10"/>
+            <circle cx="90" cy="90" r="78" fill="none" stroke="url(#resGrad)" stroke-width="10"
+              stroke-linecap="round" stroke-dasharray="${circumference}" stroke-dashoffset="${circumference}"
+              id="score-circle" style="transition:stroke-dashoffset 1.1s cubic-bezier(.3,.8,.3,1);"/>
+            <defs>
+              <linearGradient id="resGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#28e0ff"/>
+                <stop offset="100%" stop-color="#a25bff"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="score-center">
+            <div class="num">${score}</div>
+            <div class="denom">/ ${MAX_SCORE}</div>
+          </div>
+        </div>
+        <div class="perf-msg">${msg.title}</div>
+        <div class="perf-sub">${msg.sub}</div>
+        <div class="diff-badge ${DIFF_META[play.difficulty].cls}" style="margin-bottom:26px;">
+          ${DIFF_META[play.difficulty].emoji} Final tier: ${DIFF_META[play.difficulty].label}
+        </div>
+        <div class="result-actions">
+          <button class="btn" id="restart-btn">RESTART QUIZ</button>
+          <button class="btn ghost" id="share-btn">SHARE RESULT</button>
+        </div>
+      </div>
+    </div>`;
+
+  requestAnimationFrame(()=>{
+    const c = document.getElementById('score-circle');
+    if(c) c.style.strokeDashoffset = offset;
+  });
+
+  document.getElementById('restart-btn').onclick = () => startQuiz(play.meta);
+  document.getElementById('share-btn').onclick = () => shareResult(score);
+}
+
+async function shareResult(score){
+  const diffLabel = DIFF_META[diffForScore(score)].label;
+  const text = `MY CODE-X QUIZ SCORE\nScore: ${score}/${MAX_SCORE}\nDifficulty: ${diffLabel.replace(' MODE','')}`;
+  if(navigator.share){
+    try{ await navigator.share({ title:'CODE-X QUIZ', text }); return; }
+    catch(e){ /* user cancelled or unsupported — fall through to copy */ }
+  }
+  try{
+    await navigator.clipboard.writeText(text);
+    toast('Result copied to clipboard');
+  }catch(e){
+    toast('Score: ' + score + '/' + MAX_SCORE);
+  }
+}
+
+/* ================================================================
+   CREATOR — LOGIN
+   ================================================================ */
+function renderLogin(){
+  app.innerHTML = `
+    <div class="center-screen">
+      <div class="glass login-card fade-in">
+        <div class="brand-mark">${brandMarkSvg()}</div>
+        <h1 class="login-title">CODE-X ACCESS</h1>
+        <div class="login-sub">CREATOR AUTHENTICATION REQUIRED</div>
+        <div class="field">
+          <label class="field-label">Username</label>
+          <input type="text" id="user-in" autocomplete="username" placeholder="creator username">
+        </div>
+        <div class="field">
+          <label class="field-label">Password</label>
+          <input type="password" id="pass-in" autocomplete="current-password" placeholder="••••••••">
+        </div>
+        <div class="error-text" id="login-err">Invalid username or password.</div>
+        <button class="btn block" id="login-btn" style="margin-top:6px;">ENTER DASHBOARD</button>
+        <div class="footer-note">This is a client-side demo login for the CODE-X sandbox.<br/>In production, swap this for real server-side session auth — never trust client-only checks.</div>
+      </div>
+    </div>`;
+
+  const doLogin = async () => {
+    const u = document.getElementById('user-in').value.trim();
+    const p = document.getElementById('pass-in').value;
+    const err = document.getElementById('login-err');
+    if(u === CREATOR_USER && p === CREATOR_PASS){
+      creatorSession = true;
+      await storeSet('codex_session', 'true', false);
+      render();
+    } else {
+      err.classList.add('show');
+    }
+  };
+  document.getElementById('login-btn').onclick = doLogin;
+  document.getElementById('pass-in').addEventListener('keydown', e=>{ if(e.key === 'Enter') doLogin(); });
+  document.getElementById('user-in').addEventListener('keydown', e=>{ if(e.key === 'Enter') doLogin(); });
+}
+
+/* ================================================================
+   CREATOR — DASHBOARD
+   ================================================================ */
+async function renderDashboard(){
+  app.innerHTML = `
+    <div class="dash-wrap fade-in">
+      <div class="dash-header">
+        <div>
+          <div class="eyebrow">CREATOR PANEL</div>
+          <h1 class="dash-title" style="margin-top:6px;">CODE-X QUIZ CREATOR</h1>
+        </div>
+        <button class="btn ghost sm" id="logout-btn">LOGOUT</button>
+      </div>
+
+      <div class="glass panel">
+        <div class="panel-head">
+          <div class="panel-title"><span class="idx">01</span> Quiz Details</div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label class="field-label">Quiz title (shown to players)</label>
+            <input type="text" id="quiz-title" placeholder="CODE-X QUIZ" value="CODE-X QUIZ">
+          </div>
+        </div>
+      </div>
+
+      <div class="glass panel">
+        <div class="panel-head">
+          <div class="panel-title"><span class="idx">02</span> GitHub Integration</div>
+          <span class="demo-tag">DEMO / MOCK</span>
+        </div>
+        <div class="field">
+          <label class="field-label">GitHub Personal Access Token</label>
+          <input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+          <div class="hint">
+            No real GitHub API call is made in this sandbox — there's no backend to receive it. The token is only checked
+            for a plausible format in your browser, then <b>immediately discarded</b>: it is never written to storage,
+            never placed in the generated link, and never logged. In production, this field would post to a secure
+            server endpoint that talks to GitHub on your behalf, using a server-side environment variable — the token
+            would never touch client-side code or localStorage.
+          </div>
+        </div>
+        <div class="error-text" id="gh-err">Enter a GitHub token to generate a link.</div>
+      </div>
+
+      <div class="glass panel">
+        <div class="panel-head">
+          <div class="panel-title"><span class="idx">03</span> Publish</div>
+        </div>
+        <div class="row">
+          <button class="btn" id="generate-btn">GENERATE SHAREABLE LINK</button>
+          <button class="btn ghost" id="preview-btn">PREVIEW DEMO QUIZ</button>
+        </div>
+      </div>
+
+      <div class="glass panel" id="recent-panel">
+        <div class="panel-head">
+          <div class="panel-title"><span class="idx">04</span> Recently Generated</div>
+        </div>
+        <div class="recent-list" id="recent-list">
+          <div class="hint">Loading…</div>
+        </div>
+      </div>
+
+      <div class="footer-note">Players never see this panel. It's only reachable at <span style="color:var(--cyan)">#/creator</span> after logging in.</div>
+    </div>
+
+    <div class="modal-backdrop" id="link-modal">
+      <div class="glass modal-card pop-in">
+        <div class="modal-icon">🔗</div>
+        <div class="modal-title">Shareable link ready</div>
+        <div class="modal-sub">Send this to any phone, tablet, or desktop — it opens straight to the quiz, no install needed.</div>
+        <div class="link-box" id="link-box-text"></div>
+        <div class="row" style="margin-top:20px;">
+          <button class="btn block" id="copy-link-btn">COPY LINK</button>
+        </div>
+        <button class="btn ghost block" id="close-modal-btn" style="margin-top:10px;">CLOSE</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('logout-btn').onclick = async () => {
+    creatorSession = false;
+    await storeDelete('codex_session', false);
+    location.hash = '#/';
+  };
+
+  document.getElementById('preview-btn').onclick = () => {
+    window.open(location.pathname + '#/', '_blank');
+  };
+
+  document.getElementById('generate-btn').onclick = onGenerateLink;
+
+  document.getElementById('close-modal-btn').onclick = () => {
+    document.getElementById('link-modal').classList.remove('show');
+  };
+
+  await loadRecentQuizzes();
+}
+
+async function onGenerateLink(){
+  const titleInput = document.getElementById('quiz-title');
+  const tokenInput = document.getElementById('gh-token');
+  const errEl = document.getElementById('gh-err');
+  const genBtn = document.getElementById('generate-btn');
+
+  errEl.classList.remove('show');
+
+  // re-validate creator session
+  const sess = await storeGet('codex_session', false);
+  if(!sess){ toast('Session expired — please log in again'); location.hash = '#/creator'; return; }
+
+  const token = tokenInput.value.trim();
+  if(!token || token.length < 8){
+    errEl.textContent = 'Enter a GitHub token to generate a link.';
+    errEl.classList.add('show');
+    return;
+  }
+  // superficial format check only — never persisted, never sent anywhere in this sandbox
+  const looksValid = /^[A-Za-z0-9_\-]{8,}$/.test(token);
+  if(!looksValid){
+    errEl.textContent = "That doesn't look like a valid token format.";
+    errEl.classList.add('show');
+    return;
+  }
+  // discard the token value immediately — do not store, do not log
+  tokenInput.value = '';
+
+  genBtn.disabled = true;
+  genBtn.textContent = 'GENERATING…';
+
+  const title = titleInput.value.trim() || 'CODE-X QUIZ';
+  const id = genId(8);
+  const meta = { id, title, createdAt: Date.now() };
+
+  const ok = await storeSet('quiz:' + id, JSON.stringify(meta), true);
+  genBtn.disabled = false;
+  genBtn.textContent = 'GENERATE SHAREABLE LINK';
+
+  if(!ok){
+    toast('Could not save quiz — please try again');
+    return;
+  }
+
+  // keep a personal (non-shared) record of quizzes this creator made, for the "recent" list
+  const recentRaw = await storeGet('codex_recent_quizzes', false);
+  let recent = [];
+  try{ recent = recentRaw ? JSON.parse(recentRaw) : []; }catch(e){ recent = []; }
+  recent.unshift({ id, title, createdAt: meta.createdAt });
+  recent = recent.slice(0, 12);
+  await storeSet('codex_recent_quizzes', JSON.stringify(recent), false);
+
+  const link = location.origin + location.pathname + '#/quiz/' + id;
+  document.getElementById('link-box-text').textContent = link;
+  document.getElementById('copy-link-btn').onclick = () => copyLink(link);
+  document.getElementById('link-modal').classList.add('show');
+
+  loadRecentQuizzes();
+}
+
+async function copyLink(link){
+  try{
+    await navigator.clipboard.writeText(link);
+    toast('Link copied');
+  }catch(e){
+    toast('Copy failed — select and copy manually');
+  }
+}
+
+async function loadRecentQuizzes(){
+  const listEl = document.getElementById('recent-list');
+  if(!listEl) return;
+  const raw = await storeGet('codex_recent_quizzes', false);
+  let recent = [];
+  try{ recent = raw ? JSON.parse(raw) : []; }catch(e){ recent = []; }
+
+  if(recent.length === 0){
+    listEl.innerHTML = `<div class="hint">No quizzes generated yet. Fill in a title, add a GitHub token above, then generate your first link.</div>`;
+    return;
+  }
+
+  listEl.innerHTML = recent.map(r => `
+    <div class="recent-item">
+      <div>
+        <div class="rname">${esc(r.title)}</div>
+        <div class="rid">#/quiz/${esc(r.id)}</div>
+      </div>
+      <div class="row" style="gap:8px;">
+        <button class="btn ghost sm" data-copy="${esc(r.id)}">COPY</button>
+        <button class="btn ghost sm" data-open="${esc(r.id)}">OPEN</button>
+      </div>
+    </div>
+  `).join('');
+
+  listEl.querySelectorAll('[data-copy]').forEach(btn=>{
+    btn.onclick = () => copyLink(location.origin + location.pathname + '#/quiz/' + btn.dataset.copy);
+  });
+  listEl.querySelectorAll('[data-open]').forEach(btn=>{
+    btn.onclick = () => window.open(location.pathname + '#/quiz/' + btn.dataset.open, '_blank');
+  });
+}
+
+})();
+</script>
+</body>
+</html>
